@@ -139,20 +139,29 @@
   }
 
   // ---------- Text chunking ----------
-  // Short utterances avoid engine cut-offs on long text (Chrome) and keep the sync tight.
+  // Long utterances get cut off by some engines (Chrome), but every utterance boundary costs a
+  // pause (online voices fetch each one separately), so pack whole sentences into ~200-char chunks.
+  const MAX_CHUNK = 200;
+
   function splitChunks(text) {
     const sentences = text.replace(/\s*\n+\s*/g, '\n').match(/[^.!?…\n]+[.!?…]*|[.!?…]+/g) || [];
-    const chunks = [];
+    const pieces = [];
     for (let s of sentences) {
       s = s.trim();
       if (!/[\p{L}\p{N}]/u.test(s)) continue;
-      if (s.length <= 200) { chunks.push(s); continue; }
+      if (s.length <= MAX_CHUNK) { pieces.push(s); continue; }
       let buf = '';
       for (const part of s.match(/[^,;:،]+[,;:،]*/g)) {
-        if (buf && (buf + part).length > 200) { chunks.push(buf.trim()); buf = ''; }
+        if (buf && (buf + part).length > MAX_CHUNK) { pieces.push(buf.trim()); buf = ''; }
         buf += part;
       }
-      if (buf.trim()) chunks.push(buf.trim());
+      if (buf.trim()) pieces.push(buf.trim());
+    }
+    const chunks = [];
+    for (const p of pieces) {
+      const last = chunks.length - 1;
+      if (last >= 0 && chunks[last].length + 1 + p.length <= MAX_CHUNK) chunks[last] += ' ' + p;
+      else chunks.push(p);
     }
     return chunks;
   }
