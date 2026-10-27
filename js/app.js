@@ -98,7 +98,7 @@
     list.forEach((v) => {
       const o = document.createElement('option');
       o.value = v.voiceURI;
-      o.textContent = `${v.name} (${v.lang})`;
+      o.textContent = `${v.name} (${v.lang})${v.localService ? '' : ' · online'}`;
       els.voice.appendChild(o);
     });
     if (list.some((v) => v.voiceURI === saved)) els.voice.value = saved;
