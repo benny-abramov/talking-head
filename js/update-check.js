@@ -5,7 +5,7 @@
 
   if (!window.fetch || location.protocol === 'file:') return;
 
-  const FILES = ['index.html', 'styles.css', 'js/visemes.js', 'js/looks.js', 'js/avatar.js', 'js/app.js', 'js/update-check.js'];
+  const FILES = ['index.html', 'styles.css', 'js/visemes.js', 'js/looks.js', 'js/avatar.js', 'js/photo-avatar.js', 'js/app.js', 'js/update-check.js'];
   const CHECK_EVERY = 5 * 60 * 1000;
   const MIN_GAP = 30 * 1000;
 

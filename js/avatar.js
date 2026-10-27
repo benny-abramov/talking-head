@@ -137,6 +137,55 @@
 </svg>`;
   }
 
+  // Blinks, gaze wander and head sway shared by the cartoon and photo avatars.
+  // Gaze is in cartoon SVG px (eye half-width 17); rot in degrees; bob in SVG px.
+  function createIdleMotion() {
+    let time = 0;
+    let nextBlink = 1.5;
+    let blinkT = -1;
+    let nextGaze = 2;
+    let talk = 0; // smoothed "how much is she talking", drives head/brow motion
+    const gaze = { x: 0, y: 0 };
+    const gazeTarget = { x: 0, y: 0 };
+
+    return function update(dt, talking) {
+      time += dt;
+      talk += ((talking ? 1 : 0) - talk) * (1 - Math.exp(-dt * 3));
+
+      nextBlink -= dt;
+      if (nextBlink <= 0 && blinkT < 0) blinkT = 0;
+      let eyeOpen = 1;
+      if (blinkT >= 0) {
+        blinkT += dt;
+        const d = 0.16;
+        eyeOpen = 1 - 0.92 * Math.sin(Math.min(blinkT / d, 1) * Math.PI);
+        if (blinkT >= d) {
+          blinkT = -1;
+          nextBlink = 2 + Math.random() * 4;
+          if (Math.random() < 0.15) nextBlink = 0.25; // occasional double blink
+        }
+      }
+
+      // Mostly looking at the viewer, with small wanders.
+      nextGaze -= dt;
+      if (nextGaze <= 0) {
+        const atViewer = Math.random() < 0.6;
+        gazeTarget.x = atViewer ? 0 : (Math.random() - 0.5) * 6;
+        gazeTarget.y = atViewer ? 0 : (Math.random() - 0.5) * 3;
+        nextGaze = 1.2 + Math.random() * 3;
+      }
+      const ga = 1 - Math.exp(-dt * 12);
+      gaze.x += (gazeTarget.x - gaze.x) * ga;
+      gaze.y += (gazeTarget.y - gaze.y) * ga;
+
+      // Head sway and breathing; a touch more lively while talking.
+      const rot = Math.sin(time * 0.6) * 1.2 + Math.sin(time * 1.7) * 0.4 * (1 + talk) + Math.sin(time * 3.1) * 0.6 * talk;
+      const bob = Math.sin(time * 1.2) * 1.2;
+
+      return { time, talk, eyeOpen, gazeX: gaze.x, gazeY: gaze.y, rot, bob };
+    };
+  }
+
   let instances = 0;
 
   function createAvatar(container, look) {
@@ -152,13 +201,7 @@
     const shapes = global.Visemes.SHAPES;
     const cur = { ...shapes.rest };
     let target = shapes.rest;
-    let time = 0;
-    let nextBlink = 1.5;
-    let blinkT = -1;
-    const gaze = { x: 0, y: 0 };
-    const gazeTarget = { x: 0, y: 0 };
-    let nextGaze = 2;
-    let talk = 0; // smoothed "how much is she talking", drives head/brow motion
+    const idle = createIdleMotion();
 
     function setViseme(name) {
       target = shapes[name] || shapes.rest;
@@ -188,53 +231,23 @@
     }
 
     function tick(dt) {
-      time += dt;
-
       // Ease mouth toward target viseme (coarticulation for free).
       const a = 1 - Math.exp(-dt * 22);
       for (const key of KEYS) cur[key] += (target[key] - cur[key]) * a;
       drawMouth();
 
-      talk += ((target === shapes.rest ? 0 : 1) - talk) * (1 - Math.exp(-dt * 3));
-
-      // Blink.
-      nextBlink -= dt;
-      if (nextBlink <= 0 && blinkT < 0) blinkT = 0;
-      let s = 1;
-      if (blinkT >= 0) {
-        blinkT += dt;
-        const d = 0.16;
-        s = 1 - 0.92 * Math.sin(Math.min(blinkT / d, 1) * Math.PI);
-        if (blinkT >= d) {
-          blinkT = -1;
-          nextBlink = 2 + Math.random() * 4;
-          if (Math.random() < 0.15) nextBlink = 0.25; // occasional double blink
-        }
-      }
+      const m = idle(dt, target !== shapes.rest);
+      const s = m.eyeOpen;
       const eyeT = `matrix(1 0 0 ${f(s)} 0 ${f(EYE_Y * (1 - s))})`;
       el.eyes.forEach((e) => e.setAttribute('transform', eyeT));
 
-      // Gaze: mostly at the viewer, with small wanders.
-      nextGaze -= dt;
-      if (nextGaze <= 0) {
-        const look = Math.random() < 0.6;
-        gazeTarget.x = look ? 0 : (Math.random() - 0.5) * 6;
-        gazeTarget.y = look ? 0 : (Math.random() - 0.5) * 3;
-        nextGaze = 1.2 + Math.random() * 3;
-      }
-      const ga = 1 - Math.exp(-dt * 12);
-      gaze.x += (gazeTarget.x - gaze.x) * ga;
-      gaze.y += (gazeTarget.y - gaze.y) * ga;
-      const irisT = `translate(${f(gaze.x)} ${f(gaze.y)})`;
+      const irisT = `translate(${f(m.gazeX)} ${f(m.gazeY)})`;
       el.irises.forEach((e) => e.setAttribute('transform', irisT));
 
       // Brows lift a little with open vowels while talking.
-      el.brows.setAttribute('transform', `translate(0 ${f(-cur.open * 0.12 * talk - Math.sin(time * 0.7) * 0.4)})`);
+      el.brows.setAttribute('transform', `translate(0 ${f(-cur.open * 0.12 * m.talk - Math.sin(m.time * 0.7) * 0.4)})`);
 
-      // Head sway and breathing; a touch more lively while talking.
-      const rot = Math.sin(time * 0.6) * 1.2 + Math.sin(time * 1.7) * 0.4 * (1 + talk) + Math.sin(time * 3.1) * 0.6 * talk;
-      const bob = Math.sin(time * 1.2) * 1.2 + cur.open * 0.06;
-      const headT = `rotate(${f(rot)} 200 380) translate(0 ${f(bob)})`;
+      const headT = `rotate(${f(m.rot)} 200 380) translate(0 ${f(m.bob + cur.open * 0.06)})`;
       el.head.forEach((g) => g.setAttribute('transform', headT));
     }
 
@@ -248,5 +261,6 @@
   }
 
   global.createAvatar = createAvatar;
+  global.createIdleMotion = createIdleMotion;
   global.renderAvatarThumbnail = renderThumbnail;
 })(window);

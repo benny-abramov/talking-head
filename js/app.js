@@ -7,9 +7,10 @@
     stage: $('avatar'), text: $('text'), speak: $('speak'), sample: $('sample'),
     voice: $('voice'), rate: $('rate'), pitch: $('pitch'), rateOut: $('rate-out'), pitchOut: $('pitch-out'),
     caption: $('caption'), status: $('status'), langBtns: document.querySelectorAll('[data-lang]'),
-    picker: $('picker'),
+    picker: $('picker'), photoInput: $('photo-input'),
   };
   const LOOKS = window.AvatarLooks;
+  const UPLOAD = LOOKS.find((l) => l.upload);
 
   const SAMPLES = {
     en: 'Hello! I am your talking head. Type any text in the box, press the button, and I will read it aloud while my lips follow the words.',
@@ -33,9 +34,11 @@
     set(k, v) { try { localStorage.setItem('th.' + k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
   };
 
+  UPLOAD.photo = store.get('uploadPhoto', null);
+
   const state = {
     lang: store.get('lang', 'en'),
-    look: LOOKS.find((l) => l.id === store.get('look', '')) || LOOKS[0],
+    look: LOOKS.find((l) => l.id === store.get('look', '') && (!l.upload || l.photo)) || LOOKS[0],
     voices: [],
     session: 0,          // bumps on every speak/stop so stale utterance events are ignored
     pending: 0,          // utterances queued in the current session
@@ -43,9 +46,22 @@
     ups: store.get('ups', { en: 11, he: 11 }), // timeline units per second at rate 1, learned over time
   };
 
-  let avatar = window.createAvatar(els.stage, state.look);
+  function makeAvatar(look) {
+    if (!look.photo) return window.createAvatar(els.stage, look);
+    return window.PhotoAvatar.create(els.stage, look, (e) => setStatus(e.message, 'error'));
+  }
+
+  let avatar = makeAvatar(state.look);
 
   // ---------- Avatar picker ----------
+  const PLUS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  function thumbnail(look) {
+    if (look.photo) return `<img src="${look.photo}" alt="">`;
+    if (look.upload) return `<span class="thumb-add">${PLUS_ICON}</span>`;
+    return window.renderAvatarThumbnail(look);
+  }
+
   function renderPicker() {
     els.picker.innerHTML = '';
     LOOKS.forEach((look) => {
@@ -53,21 +69,67 @@
       b.type = 'button';
       b.setAttribute('role', 'radio');
       b.setAttribute('aria-checked', String(look === state.look));
-      b.innerHTML = window.renderAvatarThumbnail(look) + `<span>${look.name}</span>`;
-      b.addEventListener('click', () => setLook(look));
+      b.innerHTML = thumbnail(look) + `<span>${look.name}</span>`;
+      if (look.upload) b.title = 'Use a front-facing portrait. It stays on this device.';
+      b.addEventListener('click', () => {
+        // "Your photo" asks for a photo the first time, and again when clicked while selected.
+        if (look.upload && (!look.photo || look === state.look)) els.photoInput.click();
+        else setLook(look);
+      });
       els.picker.appendChild(b);
     });
+    // On phones the picker is a swipeable row: bring the selected avatar into view.
+    const sel = els.picker.querySelector('[aria-checked="true"]');
+    if (sel && els.picker.scrollWidth > els.picker.clientWidth) {
+      const pr = els.picker.getBoundingClientRect(), br = sel.getBoundingClientRect();
+      els.picker.scrollLeft += br.left - pr.left - (pr.width - br.width) / 2;
+    }
   }
 
-  function setLook(look) {
-    if (look === state.look) return;
+  function setLook(look, force = false) {
+    if (look === state.look && !force) return;
     stop();
+    setStatus('');
     state.look = look;
     store.set('look', look.id);
-    avatar = window.createAvatar(els.stage, look);
+    avatar = makeAvatar(look);
     els.picker.querySelectorAll('[role="radio"]').forEach((b, i) => b.setAttribute('aria-checked', String(LOOKS[i] === look)));
     renderVoices();
   }
+
+  // Shrinks the chosen photo so it is quick to process and small enough to remember.
+  function readPhoto(file, maxSide = 768) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const s = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * s);
+        c.height = Math.round(img.naturalHeight * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.88));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That file is not a photo this browser can open.')); };
+      img.src = url;
+    });
+  }
+
+  els.photoInput.addEventListener('change', async () => {
+    const file = els.photoInput.files[0];
+    els.photoInput.value = '';
+    if (!file) return;
+    try {
+      UPLOAD.photo = await readPhoto(file);
+      UPLOAD.detected = null;
+      store.set('uploadPhoto', UPLOAD.photo);
+      renderPicker();
+      setLook(UPLOAD, true);
+    } catch (e) {
+      setStatus(e.message, 'error');
+    }
+  });
 
   // ---------- Voices ----------
   const langOf = (v) => v.lang.toLowerCase().replace('_', '-');

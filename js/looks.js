@@ -99,6 +99,12 @@
       under: '<path fill="#bdbdbd" d="M122 236 C120 300 152 352 200 358 C248 352 280 300 278 236 L272 236 C270 270 256 296 240 306 C230 292 216 288 200 289 C184 288 170 292 160 306 C144 296 130 270 128 236 Z"/>',
       front: '<path fill="#a9a9a9" d="M170 292 C176 280 192 278 200 284 C208 278 224 280 230 292 C222 288 210 287 200 290 C190 287 178 288 170 292 Z"/>' + glasses('#333'),
     },
+
+    // Photo avatars (js/photo-avatar.js). Lena is a public-domain StyleGAN face from Wikimedia
+    // Commons (File:Woman 1.jpg); her landmarks are precomputed in photos/lena.json.
+    { id: 'lena', name: 'Lena', gender: 'female', photo: 'photos/lena.jpg', landmarks: 'photos/lena.json' },
+    // The viewer's own photo; `photo` is filled in by app.js.
+    { id: 'upload', name: 'Your photo', gender: 'female', upload: true, photo: null },
   ];
 
   global.AvatarLooks = LOOKS;

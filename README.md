@@ -17,7 +17,16 @@ A 2D female talking head that reads text aloud in English or Hebrew, with lip sy
 | Sync | `js/app.js` | Snaps to the engine's word-boundary events when available; otherwise a timer whose speed self-calibrates from past utterances. |
 | Avatar | `js/avatar.js` | Original SVG character with a parametric mouth (smoothly blended), blinking, gaze and head motion. |
 | Updates | `js/update-check.js` | Every 5 min and on returning to the tab, compares the deployed files with the loaded ones and offers a reload. Add new files to its `FILES` list. |
-| Looks | `js/looks.js` | 8 selectable characters (hair, colours, accessories) sharing one head rig. Add a look by adding an entry. Male looks prefer male voices. |
+| Looks | `js/looks.js` | 8 selectable cartoon characters (hair, colours, accessories) sharing one head rig, plus photo avatars. Add a look by adding an entry. Male looks prefer male voices. |
+| Photo avatars | `js/photo-avatar.js` | Warps a portrait photo with a WebGL mesh on MediaPipe face landmarks (mouth, jaw, blinks, gaze, head sway) and paints teeth/mouth interior. "Your photo" runs face detection in the browser; the photo never leaves the device. |
+
+### Adding a bundled photo
+
+1. Put a front-facing portrait (closed mouth, even light, ~768px) in `photos/`. Use AI-generated faces or photos of people who agreed.
+2. Add `{ id, name, gender, photo: 'photos/x.jpg', landmarks: 'photos/x.json' }` to `js/looks.js`.
+3. The landmarks file is optional (without it, landmarks are detected on first use), but it saves phones a ~4 MB model download. To make one, pick the photo via "Your photo" and run `JSON.stringify(AvatarLooks.find(l => l.upload).detected)` in the browser console.
+
+`photos/lena.jpg` is a public-domain StyleGAN image from Wikimedia Commons ([File:Woman 1.jpg](https://commons.wikimedia.org/wiki/File:Woman_1.jpg)).
 
 ## Voices
 
