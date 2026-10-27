@@ -13,7 +13,8 @@
 
   const SAMPLES = {
     en: 'Hello! I am your talking head. Type any text in the box, press the button, and I will read it aloud while my lips follow the words.',
-    he: 'שלום! אני הדמות המדברת שלך. כתבו טקסט כלשהו בתיבה, לחצו על הכפתור, ואני אקרא אותו בקול רם, והשפתיים שלי יזוזו לפי המילים.',
+    // Infinitives rather than imperatives: unpointed כתבו/לחצו get read as past tense (katvu/lachatsu).
+    he: 'שלום! אני הדמות המדברת שלך. אפשר לכתוב כל טקסט בתיבה וללחוץ על הכפתור, ואני אקרא אותו בקול רם, והשפתיים שלי יזוזו לפי המילים.',
   };
 
   // Voice names are the only gender signal the Web Speech API gives us.
