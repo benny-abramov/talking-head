@@ -222,3 +222,26 @@ textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset:
 .range span { display: flex; justify-content: space-between; }
 .range output { color: var(--muted); font-weight: 500; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+.update {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 16px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: 0 6px 24px rgb(0 0 0 / .25);
+  font-size: .95rem;
+  z-index: 10;
+}
+.update[hidden] { display: none; }
+.update button { font: inherit; border: 0; cursor: pointer; }
+.update-reload { padding: 8px 14px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.update-close { background: none; color: inherit; font-size: 1.4rem; line-height: 1; padding: 4px 6px; opacity: .7; }
