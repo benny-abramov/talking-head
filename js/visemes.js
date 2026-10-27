@@ -7,20 +7,21 @@
   // Mouth shape presets, in the avatar's SVG coordinate space.
   //   w: half-width, open: gap between lips, up/low: lip thickness,
   //   round: 0.6 = pointed corners .. 1 = round (O/U), teeth/tongue: visibility 0..1,
-  //   tongueUp: 0 = resting low .. 1 = raised to the teeth (L, TH)
+  //   tongueUp: 0 = resting low .. 1 = raised to the teeth (L, TH),
+  //   smile: how far the mouth corners lift (rounded shapes can't smile much)
   const SHAPES = {
-    rest: { w: 23, open: 0,  up: 5, low: 7, round: 0.8,  teeth: 0,   tongue: 0,   tongueUp: 0 },
-    MBP:  { w: 21, open: 0,  up: 4, low: 5, round: 0.75, teeth: 0,   tongue: 0,   tongueUp: 0 },
-    AI:   { w: 25, open: 20, up: 4, low: 6, round: 0.85, teeth: 0.9, tongue: 0.7, tongueUp: 0 },
-    E:    { w: 28, open: 9,  up: 4, low: 6, round: 0.65, teeth: 1,   tongue: 0.3, tongueUp: 0 },
-    O:    { w: 16, open: 17, up: 5, low: 6, round: 1.0,  teeth: 0.3, tongue: 0.5, tongueUp: 0 },
-    U:    { w: 11, open: 7,  up: 6, low: 7, round: 1.0,  teeth: 0,   tongue: 0,   tongueUp: 0 },
-    FV:   { w: 23, open: 4,  up: 4, low: 3, round: 0.7,  teeth: 1,   tongue: 0,   tongueUp: 0 },
-    L:    { w: 24, open: 11, up: 4, low: 6, round: 0.8,  teeth: 0.9, tongue: 1,   tongueUp: 1 },
-    TH:   { w: 24, open: 7,  up: 4, low: 6, round: 0.75, teeth: 1,   tongue: 1,   tongueUp: 0.4 },
-    CDG:  { w: 24, open: 6,  up: 4, low: 6, round: 0.75, teeth: 1,   tongue: 0.2, tongueUp: 0 },
-    CH:   { w: 18, open: 8,  up: 5, low: 7, round: 0.9,  teeth: 1,   tongue: 0,   tongueUp: 0 },
-    R:    { w: 17, open: 6,  up: 5, low: 7, round: 0.95, teeth: 0.6, tongue: 0,   tongueUp: 0 },
+    rest: { w: 27, open: 3,  up: 4, low: 6, round: 0.7,  teeth: 0.9, tongue: 0,   tongueUp: 0,   smile: 7 },
+    MBP:  { w: 23, open: 0,  up: 4, low: 5, round: 0.75, teeth: 0,   tongue: 0,   tongueUp: 0,   smile: 4 },
+    AI:   { w: 26, open: 20, up: 4, low: 6, round: 0.85, teeth: 0.9, tongue: 0.7, tongueUp: 0,   smile: 3 },
+    E:    { w: 29, open: 9,  up: 4, low: 6, round: 0.65, teeth: 1,   tongue: 0.3, tongueUp: 0,   smile: 4.5 },
+    O:    { w: 16, open: 17, up: 5, low: 6, round: 1.0,  teeth: 0.3, tongue: 0.5, tongueUp: 0,   smile: 1 },
+    U:    { w: 11, open: 7,  up: 6, low: 7, round: 1.0,  teeth: 0,   tongue: 0,   tongueUp: 0,   smile: 0.5 },
+    FV:   { w: 24, open: 4,  up: 4, low: 3, round: 0.7,  teeth: 1,   tongue: 0,   tongueUp: 0,   smile: 3.5 },
+    L:    { w: 25, open: 11, up: 4, low: 6, round: 0.8,  teeth: 0.9, tongue: 1,   tongueUp: 1,   smile: 3 },
+    TH:   { w: 25, open: 7,  up: 4, low: 6, round: 0.75, teeth: 1,   tongue: 1,   tongueUp: 0.4, smile: 3.5 },
+    CDG:  { w: 25, open: 6,  up: 4, low: 6, round: 0.75, teeth: 1,   tongue: 0.2, tongueUp: 0,   smile: 4 },
+    CH:   { w: 18, open: 8,  up: 5, low: 7, round: 0.9,  teeth: 1,   tongue: 0,   tongueUp: 0,   smile: 1.5 },
+    R:    { w: 17, open: 6,  up: 5, low: 7, round: 0.95, teeth: 0.6, tongue: 0,   tongueUp: 0,   smile: 1.5 },
   };
 
   const VOWELS = new Set(['AI', 'E', 'O', 'U']);

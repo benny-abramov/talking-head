@@ -9,7 +9,7 @@
 
   const DEFAULT_FACE = 'M200 108 C142 108 120 156 120 222 C120 292 158 340 200 344 C242 340 280 292 280 222 C280 156 258 108 200 108 Z';
 
-  const KEYS = ['w', 'open', 'up', 'low', 'round', 'teeth', 'tongue', 'tongueUp'];
+  const KEYS = ['w', 'open', 'up', 'low', 'round', 'teeth', 'tongue', 'tongueUp', 'smile'];
   const f = (n) => n.toFixed(2);
 
   function mouthGeometry(p) {
@@ -22,19 +22,24 @@
     const H = ht + p.up;
     const B = hb + p.low;
     const y = MOUTH_Y;
+    const sm = p.smile;
+    const yc = y - sm;                 // raised corners
+    const sag = sm * 0.9;              // pulls the middle down so the lip line curves up into the corners
+    const mid = sm * 0.425;            // where that puts the lip line's centre (cubic midpoint)
 
     const inner =
-      `M${f(CX - w)},${y} C${f(CX - w * k)},${f(y - ht * c)} ${f(CX + w * k)},${f(y - ht * c)} ${f(CX + w)},${y} ` +
-      `C${f(CX + w * k)},${f(y + hb * c)} ${f(CX - w * k)},${f(y + hb * c)} ${f(CX - w)},${y}Z`;
+      `M${f(CX - w)},${f(yc)} C${f(CX - w * k)},${f(y - ht * c + sag)} ${f(CX + w * k)},${f(y - ht * c + sag)} ${f(CX + w)},${f(yc)} ` +
+      `C${f(CX + w * k)},${f(y + hb * c + sag)} ${f(CX - w * k)},${f(y + hb * c + sag)} ${f(CX - w)},${f(yc)}Z`;
 
     // Outer lips with a small cupid's bow.
+    const top = y - H + mid;
     const lips =
-      `M${f(CX - wo)},${y} C${f(CX - wo * k * 0.95)},${f(y - H * 0.9)} ${f(CX - wo * 0.45)},${f(y - H * 1.15)} ${f(CX - wo * 0.2)},${f(y - H)} ` +
-      `Q${CX},${f(y - H + 2)} ${f(CX + wo * 0.2)},${f(y - H)} ` +
-      `C${f(CX + wo * 0.45)},${f(y - H * 1.15)} ${f(CX + wo * k * 0.95)},${f(y - H * 0.9)} ${f(CX + wo)},${y} ` +
-      `C${f(CX + wo * k)},${f(y + B * c)} ${f(CX - wo * k)},${f(y + B * c)} ${f(CX - wo)},${y}Z`;
+      `M${f(CX - wo)},${f(yc)} C${f(CX - wo * k * 0.95)},${f(top - H * 0.1 - sm * 0.5)} ${f(CX - wo * 0.45)},${f(top - H * 0.15)} ${f(CX - wo * 0.2)},${f(top)} ` +
+      `Q${CX},${f(top + 2)} ${f(CX + wo * 0.2)},${f(top)} ` +
+      `C${f(CX + wo * 0.45)},${f(top - H * 0.15)} ${f(CX + wo * k * 0.95)},${f(top - H * 0.1 - sm * 0.5)} ${f(CX + wo)},${f(yc)} ` +
+      `C${f(CX + wo * k)},${f(y + B * c + sag)} ${f(CX - wo * k)},${f(y + B * c + sag)} ${f(CX - wo)},${f(yc)}Z`;
 
-    return { inner, lips, ht, hb };
+    return { inner, lips, ht, hb, mid };
   }
 
   function eye(x, side, look, p) {
@@ -103,8 +108,8 @@
 
     <path fill="url(#${p}-skin)" d="${look.face || DEFAULT_FACE}"/>
 
-    <ellipse cx="150" cy="272" rx="16" ry="10" fill="${blush}" opacity="${blushOpacity}"/>
-    <ellipse cx="250" cy="272" rx="16" ry="10" fill="${blush}" opacity="${blushOpacity}"/>
+    <ellipse data-part="cheek" cx="150" cy="268" rx="16" ry="10" fill="${blush}" opacity="${blushOpacity}"/>
+    <ellipse data-part="cheek" cx="250" cy="268" rx="16" ry="10" fill="${blush}" opacity="${blushOpacity}"/>
     ${part(look.under)}
 
     <g data-part="brows" stroke="${look.brow}" stroke-width="${browW}" fill="none" stroke-linecap="round">
@@ -141,6 +146,7 @@
     const el = {
       head: qa('head'), eyes: qa('eye'), irises: qa('iris'), brows: q('brows'),
       lips: q('lips'), inner: q('inner'), clip: q('clip'), teeth: q('teeth'), tongue: q('tongue'),
+      cheeks: qa('cheek'),
     };
 
     const shapes = global.Visemes.SHAPES;
@@ -165,13 +171,17 @@
       el.clip.setAttribute('d', g.inner);
 
       el.teeth.setAttribute('x', f(CX - cur.w * 0.75));
-      el.teeth.setAttribute('y', f(MOUTH_Y - g.ht - 1));
+      el.teeth.setAttribute('y', f(MOUTH_Y - g.ht - 1 + g.mid - cur.smile * 0.3));
       el.teeth.setAttribute('width', f(cur.w * 1.5));
-      el.teeth.setAttribute('height', f(Math.min(g.ht + 1.5, 7.5)));
+      el.teeth.setAttribute('height', f(Math.min(g.ht + g.hb * 0.6 + 1.5 + cur.smile * 0.3, 7.5)));
       el.teeth.setAttribute('opacity', f(cur.teeth));
 
       el.tongue.setAttribute('cx', CX);
-      el.tongue.setAttribute('cy', f(MOUTH_Y + g.hb - 1 - cur.tongueUp * (g.hb + g.ht) * 0.6));
+      el.tongue.setAttribute('cy', f(MOUTH_Y + g.mid + g.hb - 1 - cur.tongueUp * (g.hb + g.ht) * 0.6));
+
+      // Smiling lifts the cheeks.
+      const cheekY = f(272 - cur.smile * 0.7);
+      el.cheeks.forEach((e) => e.setAttribute('cy', cheekY));
       el.tongue.setAttribute('rx', f(cur.w * 0.6));
       el.tongue.setAttribute('ry', f(3 + g.hb * 0.45));
       el.tongue.setAttribute('opacity', f(cur.tongue));
