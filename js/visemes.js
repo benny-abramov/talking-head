@@ -77,6 +77,15 @@
     'ַ': 'AI', 'ָ': 'AI', 'ֹ': 'O', 'ֺ': 'O', 'ֻ': 'U', 'ׇ': 'O',
   };
   const HAS_NIQQUD = /[ֱ-ׇֻ]/;
+  const SIN_DOT = 'ׂ';
+
+  // True if the letter at i carries a sin dot (marks follow their letter, in any order).
+  function hasSinDot(letters, i) {
+    for (let j = i + 1; j < letters.length && /[֑-ׇ]/.test(letters[j]); j++) {
+      if (letters[j] === SIN_DOT) return true;
+    }
+    return false;
+  }
 
   function hebrewWord(word) {
     const letters = [...word];
@@ -90,7 +99,8 @@
       if (!isLetter(c)) return;
       // Leading ו is the conjunction "ve-".
       if (c === 'ו' && out.length === 0 && letters.length > 2) { out.push('FV', 'E'); return; }
-      out.push(HE_LETTERS[c]);
+      // A sin dot among the following marks turns ש (sh) into s.
+      out.push(c === 'ש' && hasSinDot(letters, i) ? 'CDG' : HE_LETTERS[c]);
       if (pointed || HE_MATRES.has(c)) return;
       // Unpointed text omits most vowels: guess one between consecutive consonants.
       const next = letters.slice(i + 1).find(isLetter);

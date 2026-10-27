@@ -13,8 +13,9 @@
 
   const SAMPLES = {
     en: 'Hello! I am your talking head. Type any text in the box, press the button, and I will read it aloud while my lips follow the words.',
-    // Infinitives rather than imperatives: unpointed כתבו/לחצו get read as past tense (katvu/lachatsu).
-    he: 'שלום! אני הדמות המדברת שלך. אפשר לכתוב כל טקסט בתיבה וללחוץ על הכפתור, ואני אקרא אותו בקול רם, והשפתיים שלי יזוזו לפי המילים.',
+    // Avoids words voices misread without niqqud: imperatives כתבו/לחצו (read as past tense)
+    // and שפתיים (sin read as shin).
+    he: 'שלום! אני הדמות המדברת שלך. אפשר לכתוב כל טקסט בתיבה וללחוץ על הכפתור, ואני אקרא אותו בקול רם, והפה שלי יזוז לפי המילים.',
   };
 
   // Voice names are the only gender signal the Web Speech API gives us.
