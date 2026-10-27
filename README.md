@@ -16,6 +16,7 @@ A 2D female talking head that reads text aloud in English or Hebrew, with lip sy
 | Visemes | `js/visemes.js` | Converts spelling to 12 mouth shapes (English rules; Hebrew letters + niqqud, guessing missing vowels). |
 | Sync | `js/app.js` | Snaps to the engine's word-boundary events when available; otherwise a timer whose speed self-calibrates from past utterances. |
 | Avatar | `js/avatar.js` | Original SVG character with a parametric mouth (smoothly blended), blinking, gaze and head motion. |
+| Looks | `js/looks.js` | 8 selectable characters (hair, colours, accessories) sharing one head rig. Add a look by adding an entry. Male looks prefer male voices. |
 
 ## Voices
 

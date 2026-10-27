@@ -7,7 +7,9 @@
     stage: $('avatar'), text: $('text'), speak: $('speak'), sample: $('sample'),
     voice: $('voice'), rate: $('rate'), pitch: $('pitch'), rateOut: $('rate-out'), pitchOut: $('pitch-out'),
     caption: $('caption'), status: $('status'), langBtns: document.querySelectorAll('[data-lang]'),
+    picker: $('picker'),
   };
+  const LOOKS = window.AvatarLooks;
 
   const SAMPLES = {
     en: 'Hello! I am your talking head. Type any text in the box, press the button, and I will read it aloud while my lips follow the words.',
@@ -31,6 +33,7 @@
 
   const state = {
     lang: store.get('lang', 'en'),
+    look: LOOKS.find((l) => l.id === store.get('look', '')) || LOOKS[0],
     voices: [],
     session: 0,          // bumps on every speak/stop so stale utterance events are ignored
     pending: 0,          // utterances queued in the current session
@@ -38,7 +41,31 @@
     ups: store.get('ups', { en: 11, he: 11 }), // timeline units per second at rate 1, learned over time
   };
 
-  const avatar = window.createAvatar(els.stage);
+  let avatar = window.createAvatar(els.stage, state.look);
+
+  // ---------- Avatar picker ----------
+  function renderPicker() {
+    els.picker.innerHTML = '';
+    LOOKS.forEach((look) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', String(look === state.look));
+      b.innerHTML = window.renderAvatarThumbnail(look) + `<span>${look.name}</span>`;
+      b.addEventListener('click', () => setLook(look));
+      els.picker.appendChild(b);
+    });
+  }
+
+  function setLook(look) {
+    if (look === state.look) return;
+    stop();
+    state.look = look;
+    store.set('look', look.id);
+    avatar = window.createAvatar(els.stage, look);
+    els.picker.querySelectorAll('[role="radio"]').forEach((b, i) => b.setAttribute('aria-checked', String(LOOKS[i] === look)));
+    renderVoices();
+  }
 
   // ---------- Voices ----------
   const langOf = (v) => v.lang.toLowerCase().replace('_', '-');
@@ -46,9 +73,10 @@
 
   function scoreVoice(v, lang) {
     const name = v.name.toLowerCase();
+    const wantFemale = state.look.gender !== 'male';
     let s = 0;
-    if (FEMALE_HINTS.some((h) => name.includes(h))) s += 10;
-    else if (MALE_HINTS.some((h) => name.includes(h))) s -= 10;
+    if (FEMALE_HINTS.some((h) => name.includes(h))) s += wantFemale ? 10 : -10;
+    else if (MALE_HINTS.some((h) => name.includes(h))) s += wantFemale ? -10 : 10;
     if (/natural|neural|online|premium|enhanced/.test(name)) s += 3;
     if (lang === 'en' && langOf(v) === 'en-us') s += 1;
     if (v.default) s += 0.5;
@@ -64,7 +92,7 @@
     const lang = state.lang;
     const list = state.voices.filter((v) => matchesLang(v, lang))
       .sort((a, b) => scoreVoice(b, lang) - scoreVoice(a, lang));
-    const saved = store.get('voice.' + lang, null);
+    const saved = store.get(voiceKey(), null);
 
     els.voice.innerHTML = '';
     list.forEach((v) => {
@@ -86,6 +114,9 @@
       setStatus('');
     }
   }
+
+  // Remembered per language and per avatar gender, so switching avatars switches voices.
+  const voiceKey = () => `voice.${state.lang}.${state.look.gender}`;
 
   function currentVoice() {
     return state.voices.find((v) => v.voiceURI === els.voice.value) || null;
@@ -298,7 +329,7 @@
   els.speak.addEventListener('click', () => (els.speak.classList.contains('stop') ? stop() : speak()));
   els.sample.addEventListener('click', () => { els.text.value = SAMPLES[state.lang]; });
   els.langBtns.forEach((b) => b.addEventListener('click', () => { stop(); setLang(b.dataset.lang); }));
-  els.voice.addEventListener('change', () => store.set('voice.' + state.lang, els.voice.value));
+  els.voice.addEventListener('change', () => store.set(voiceKey(), els.voice.value));
   els.text.addEventListener('input', () => {
     const r = window.Visemes.hebrewRatio(els.text.value);
     if (r > 0.6 && state.lang !== 'he') setLang('he', { keepText: true });
@@ -321,6 +352,7 @@
     let tries = 0;
     const poll = setInterval(() => { loadVoices(); if (state.voices.length || ++tries > 20) clearInterval(poll); }, 250);
   }
+  renderPicker();
   setLang(state.lang);
   loadVoices();
   requestAnimationFrame(loop);

@@ -90,6 +90,44 @@ body {
 .caption span { border-radius: 4px; transition: background-color .12s, color .12s; }
 .caption span.on { background: var(--hl); color: var(--ink); }
 
+.picker {
+  display: flex;
+  gap: 8px;
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2px 2px 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+.picker button {
+  flex: 0 0 76px;
+  display: grid;
+  gap: 2px;
+  padding: 4px 4px 2px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+.picker button[aria-checked="true"] { border-color: var(--accent); color: var(--ink); font-weight: 600; }
+.picker svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: radial-gradient(120% 90% at 50% 25%, var(--stage-a), var(--stage-b));
+}
+
+@media (min-width: 820px) {
+  .picker { display: grid; grid-template-columns: repeat(4, 1fr); overflow: visible; }
+}
+
 .panel {
   background: var(--card);
   border: 1px solid var(--line);
