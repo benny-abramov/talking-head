@@ -47,8 +47,10 @@
   };
 
   function makeAvatar(look) {
-    if (!look.photo) return window.createAvatar(els.stage, look);
-    return window.PhotoAvatar.create(els.stage, look, (e) => setStatus(e.message, 'error'));
+    const onError = (e) => setStatus(e.message, 'error');
+    if (look.model) return window.Avatar3D.create(els.stage, look, onError);
+    if (look.photo) return window.PhotoAvatar.create(els.stage, look, onError);
+    return window.createAvatar(els.stage, look);
   }
 
   let avatar = makeAvatar(state.look);
@@ -57,7 +59,7 @@
   const PLUS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
   function thumbnail(look) {
-    if (look.photo) return `<img src="${look.photo}" alt="">`;
+    if (look.thumb || look.photo) return `<img src="${look.thumb || look.photo}" alt="">`;
     if (look.upload) return `<span class="thumb-add">${PLUS_ICON}</span>`;
     return window.renderAvatarThumbnail(look);
   }
@@ -92,6 +94,7 @@
     setStatus('');
     state.look = look;
     store.set('look', look.id);
+    if (avatar.dispose) avatar.dispose(); // the 3D avatar runs its own render loop
     avatar = makeAvatar(look);
     els.picker.querySelectorAll('[role="radio"]').forEach((b, i) => b.setAttribute('aria-checked', String(LOOKS[i] === look)));
     renderVoices();

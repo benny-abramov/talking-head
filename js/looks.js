@@ -100,6 +100,11 @@
       front: '<path fill="#a9a9a9" d="M170 292 C176 280 192 278 200 284 C208 278 224 280 230 292 C222 288 210 287 200 290 C190 287 178 288 170 292 Z"/>' + glasses('#333'),
     },
 
+    // 3D avatar (js/avatar3d.js): "brunette.glb" from the TalkingHead project, made at Ready Player Me,
+    // CC BY-NC 4.0 (free for non-commercial use with attribution).
+    { id: 'mia3d', name: 'Mia 3D', gender: 'female', model: 'avatars/brunette.glb', thumb: 'avatars/brunette.jpg',
+      credit: '3D avatar: Ready Player Me, <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>' },
+
     // Photo avatars (js/photo-avatar.js). Lena is a public-domain StyleGAN face from Wikimedia
     // Commons (File:Woman 1.jpg); her landmarks are precomputed in photos/lena.json.
     { id: 'lena', name: 'Lena', gender: 'female', photo: 'photos/lena.jpg', landmarks: 'photos/lena.json' },

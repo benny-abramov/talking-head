@@ -18,6 +18,7 @@ A 2D female talking head that reads text aloud in English or Hebrew, with lip sy
 | Avatar | `js/avatar.js` | Original SVG character with a parametric mouth (smoothly blended), blinking, gaze and head motion. |
 | Updates | `js/update-check.js` | Every 5 min and on returning to the tab, compares the deployed files with the loaded ones and offers a reload. Add new files to its `FILES` list. |
 | Looks | `js/looks.js` | 8 selectable cartoon characters (hair, colours, accessories) sharing one head rig, plus photo avatars. Add a look by adding an entry. Male looks prefer male voices. |
+| 3D avatar | `js/avatar3d.js` | "Mia 3D": a GLB character rendered with [TalkingHead](https://github.com/met4citizen/TalkingHead) 1.7.0 and three.js 0.180.0 (from jsDelivr, via the import map in `index.html`). Our viseme timeline drives the model's Oculus viseme blend shapes, so the mouth, teeth and tongue are real 3D geometry. Loaded only when chosen. |
 | Photo avatars | `js/photo-avatar.js` | Warps a portrait photo with a WebGL mesh on MediaPipe face landmarks (mouth, jaw, blinks, gaze, head sway) and paints teeth/mouth interior. "Your photo" runs face detection in the browser; the photo never leaves the device. |
 
 ### Adding a bundled photo
@@ -25,6 +26,8 @@ A 2D female talking head that reads text aloud in English or Hebrew, with lip sy
 1. Put a front-facing portrait (closed mouth, even light, ~768px) in `photos/`. Use AI-generated faces or photos of people who agreed.
 2. Add `{ id, name, gender, photo: 'photos/x.jpg', landmarks: 'photos/x.json' }` to `js/looks.js`.
 3. The landmarks file is optional (without it, landmarks are detected on first use), but it saves phones a ~4 MB model download. To make one, pick the photo via "Your photo" and run `JSON.stringify(AvatarLooks.find(l => l.upload).detected)` in the browser console.
+
+`avatars/brunette.glb` is the example avatar from the TalkingHead project, created at Ready Player Me and licensed [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (non-commercial use, with attribution, which the app shows on the stage). Other 3D avatars need a Mixamo-compatible rig plus ARKit and Oculus viseme blend shapes; check that their licence allows publishing on a public website.
 
 `photos/lena.jpg` is a public-domain StyleGAN image from Wikimedia Commons ([File:Woman 1.jpg](https://commons.wikimedia.org/wiki/File:Woman_1.jpg)).
 
